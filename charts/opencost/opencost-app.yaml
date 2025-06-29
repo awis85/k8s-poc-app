@@ -1,3 +1,4 @@
+# opencost-app.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -23,22 +24,28 @@ spec:
         pricingConfigs:
           enabled: true
           config:
-            # Load Balancer Specific Pricing
+            # Load Balancer Pricing (fixes the parsing error)
             loadBalancer:
-              cost: "0.00"  # Base cost
-              ingressDataCost: "0.01"  # Cost per GB of ingress data
-              firstFiveForwardingRulesCost: "0.0"  # Cost for first 5 rules
-              additionalForwardingRuleCost: "0.0"   # Cost per additional rule
+              cost: "0.00"  # Base cost per hour
+              ingressDataCost: "0.01"  # Cost per GB
+              firstFiveForwardingRulesCost: "0.00"  # First 5 rules
+              additionalForwardingRuleCost: "0.00"  # Each additional rule
             
-            # General Resource Pricing
+            # Required Default Pricing
             CPU: "0.024"
             RAM: "0.01"
             storage: "0.10"
-            zoneNetworkEgress: "0.01"
-            regionNetworkEgress: "0.01"
-            internetNetworkEgress: "0.05"
         
-        # Other configurations...
+        # Ensure config is mounted properly
+        extraVolumeMounts:
+          - name: pricing-config
+            mountPath: /etc/opencost
+        extraVolumes:
+          - name: pricing-config
+            configMap:
+              name: opencost-pricing
+        
+        # Other configurations
         prometheus:
           external:
             enabled: true
@@ -53,4 +60,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true
