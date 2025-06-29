@@ -7,29 +7,28 @@ metadata:
 spec:
   destination:
     server: https://kubernetes.default.svc
-    namespace: opencost  # Create this namespace first
+    namespace: opencost
   project: default
   source:
-    repoURL: https://opencost.github.io/opencost-helm-chart # Official Helm chart repository for OpenCost
-    targetRevision: 2.1.6 # Use the latest stable version
+    repoURL: https://opencost.github.io/opencost-helm-chart
+    targetRevision: 1.107.0 # Recommended stable version (2.x seems too new)
     chart: opencost
     helm:
       releaseName: opencost
       values: |
         service:
           type: ClusterIP
+          port: 9003
         prometheus:
           external:
             enabled: true
             url: "http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
         kubecostProductConfigs:
-          enabled: false    
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: opencost # The namespace where OpenCost will be installed
+          enabled: false
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true # Argo CD will create the 'opencost' namespace if it doesn't exist
+      - CreateNamespace=true
+      - ServerSideApply=true # Important for CRDs
