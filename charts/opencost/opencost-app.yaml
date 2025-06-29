@@ -23,8 +23,12 @@ spec:
           external:
             enabled: true
             url: "http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
+            http://prometheus-prometheus-oper-prometheus.monitoring.svc.cluster.local:9090
         kubecostProductConfigs:
           enabled: false
+        extraEnv:
+          - name: PROMETHEUS_SERVER_ENDPOINT
+            value: ""  # Explicitly empty
   syncPolicy:
     automated:
       prune: true
@@ -32,3 +36,4 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true # Important for CRDs
+      
