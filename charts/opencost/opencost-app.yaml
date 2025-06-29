@@ -11,25 +11,68 @@ spec:
   project: default
   source:
     repoURL: https://opencost.github.io/opencost-helm-chart
-    targetRevision: 2.1.6 # Use the latest stable version
+    targetRevision: 2.1.6
     chart: opencost
     helm:
       releaseName: opencost
       values: |
         service:
           type: ClusterIP
+          port: 9003
+        
+        # Prometheus configuration
         prometheus:
           external:
             enabled: true
             url: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
+        
+        # Disable Kubecost components
         kubecostProductConfigs:
           enabled: false
+        
+        # Environment variables
         extraEnv:
           - name: PROMETHEUS_SERVER_ENDPOINT
             value: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
+          - name: AWS_REGION
+            value: "local"  # For Minikube/local clusters
+        
+        # Pricing configuration
+        pricingConfigs:
+          enabled: true
+          config:
+            CPU: "0.024"
+            GPU: "0.00"
+            RAM: "0.01"
+            storage: "0.10"
+            zoneNetworkEgress: "0.01"
+            regionNetworkEgress: "0.01"
+            internetNetworkEgress: "0.05"
+        
+        # Node labeling for Minikube
+        nodeLabels:
+          topology.kubernetes.io/region: "local"
+        
+        # Resource requests/limits
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        
+        # Additional configurations
+        serviceMonitor:
+          enabled: false  # Disable if not using Prometheus Operator
+        podSecurityPolicy:
+          enabled: false
+        
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
+      - ApplyOutOfSyncOnly=true
