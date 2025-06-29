@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/prometheus-community/helm-charts
-    targetRevision: main
+    targetRevision: 45.4.0
     chart: kube-prometheus-stack
     helm:
       releaseName: prometheus
@@ -20,7 +20,15 @@ spec:
           enabled: true
         alertmanager:
           enabled: true
+        prometheus:
+          prometheusSpec:
+            serviceMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            probeSelectorNilUsesHelmValues: false
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true # Argo CD will create the 'monitoring' namespace if it doesn't exist

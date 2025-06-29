@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/opencost/opencost-helm-chart
-    targetRevision: main
+    targetRevision: 1.107.0 # Use the latest stable version
     chart: opencost
     helm:
       releaseName: opencost
@@ -21,8 +21,13 @@ spec:
         prometheus:
           external:
             enabled: true
-            url: "http://prometheus-operated.monitoring:9090"  # Points to Prometheus
+            url: http://prometheus-prometheus-oper-prometheus.monitoring.svc.cluster.local:9090
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: opencost # The namespace where OpenCost will be installed
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true # Argo CD will create the 'opencost' namespace if it doesn't exist
