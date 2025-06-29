@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://opencost.github.io/opencost-helm-chart
-    targetRevision: 2.1.6
+    targetRevision: 1.104.1
     chart: opencost
     helm:
       releaseName: opencost
@@ -20,32 +20,34 @@ spec:
           type: ClusterIP
           port: 9003
         
-        # Complete Pricing Configuration
+        # Explicit pricing configuration
         pricingConfigs:
           enabled: true
           config:
-            # Load Balancer Pricing (fixes the parsing error)
             loadBalancer:
-              cost: "0.00"  # Base cost per hour
-              ingressDataCost: "0.01"  # Cost per GB
-              firstFiveForwardingRulesCost: "0.00"  # First 5 rules
-              additionalForwardingRuleCost: "0.00"  # Each additional rule
-            
-            # Required Default Pricing
+              cost: "0.00"
+              ingressDataCost: "0.01"
+              firstFiveForwardingRulesCost: "0.00"
+              additionalForwardingRuleCost: "0.00"
             CPU: "0.024"
             RAM: "0.01"
             storage: "0.10"
         
-        # Ensure config is mounted properly
-        extraVolumeMounts:
-          - name: pricing-config
-            mountPath: /etc/opencost
-        extraVolumes:
-          - name: pricing-config
-            configMap:
-              name: opencost-pricing
+        # Environment variable override
+        extraEnv:
+          - name: LOAD_BALANCER_COST
+            value: "0.00"
+          - name: CUSTOM_PRICING_CONFIG
+            value: |
+              {
+                "loadBalancer": {
+                  "cost": "0.00",
+                  "ingressDataCost": "0.01",
+                  "firstFiveForwardingRulesCost": "0.00",
+                  "additionalForwardingRuleCost": "0.00"
+                }
+              }
         
-        # Other configurations
         prometheus:
           external:
             enabled: true
