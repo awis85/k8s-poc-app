@@ -1,0 +1,4 @@
+# prometheus:
+#   ingress:
+#     enabled: true
+#     hosts: ["prometheus.yourdomain.com"]

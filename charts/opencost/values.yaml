@@ -1,0 +1,7 @@
+# service:
+#   type: ClusterIP
+# ingress:
+#   enabled: true
+#   hosts:
+#     - host: opencost.yourdomain.com
+#       paths: ["/"]
