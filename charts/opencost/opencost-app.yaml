@@ -1,4 +1,3 @@
-# Updated opencost-app.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -20,31 +19,33 @@ spec:
           type: ClusterIP
           port: 9003
         
-        # Explicit configuration
-        config:
-          loadBalancer:
-            cost: "0.00"
-          cpu: "0.024"
-          ram: "0.01"
-          storage: "0.10"
-          region: "local"
+        # Complete Pricing Configuration
+        pricingConfigs:
+          enabled: true
+          config:
+            # Load Balancer Specific Pricing
+            loadBalancer:
+              cost: "0.00"  # Base cost
+              ingressDataCost: "0.01"  # Cost per GB of ingress data
+              firstFiveForwardingRulesCost: "0.0"  # Cost for first 5 rules
+              additionalForwardingRuleCost: "0.0"   # Cost per additional rule
+            
+            # General Resource Pricing
+            CPU: "0.024"
+            RAM: "0.01"
+            storage: "0.10"
+            zoneNetworkEgress: "0.01"
+            regionNetworkEgress: "0.01"
+            internetNetworkEgress: "0.05"
         
+        # Other configurations...
         prometheus:
           external:
             enabled: true
             url: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
         
-        # Ensure config is mounted properly
-        extraEnv:
-          - name: LOAD_BALANCER_COST
-            value: "0.00"
-        extraVolumeMounts:
-          - name: pricing-config
-            mountPath: /models/custom
-        extraVolumes:
-          - name: pricing-config
-            configMap:
-              name: opencost-pricing
+        kubecostProductConfigs:
+          enabled: false
         
   syncPolicy:
     automated:
@@ -52,3 +53,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
