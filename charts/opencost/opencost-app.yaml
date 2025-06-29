@@ -26,6 +26,24 @@ spec:
             enabled: true
             url: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
         
+        # Pricing configuration to resolve warnings
+        pricingConfigs:
+          enabled: true
+          config:
+            CPU: "0.024"        # Cost per CPU core per hour
+            GPU: "0.00"         # Cost per GPU per hour
+            RAM: "0.01"         # Cost per GB of RAM per hour
+            storage: "0.10"     # Cost per GB of storage per hour
+            zoneNetworkEgress: "0.01"  # Cost per GB within zone
+            regionNetworkEgress: "0.01" # Cost per GB within region
+            internetNetworkEgress: "0.05" # Cost per GB internet egress
+            loadBalancerCost: "0.00"    # Explicitly set LB cost to $0
+        
+        # Node labels for Minikube
+        nodeLabels:
+          topology.kubernetes.io/region: "local"
+          kubernetes.io/hostname: "minikube"
+        
         # Disable Kubecost components
         kubecostProductConfigs:
           enabled: false
@@ -35,25 +53,11 @@ spec:
           - name: PROMETHEUS_SERVER_ENDPOINT
             value: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
           - name: AWS_REGION
-            value: "local"  # For Minikube/local clusters
+            value: "local"  # Fallback region for Minikube
+          - name: EXPORT_CSV_FILE
+            value: ""       # Explicitly disable CSV export
         
-        # Pricing configuration
-        pricingConfigs:
-          enabled: true
-          config:
-            CPU: "0.024"
-            GPU: "0.00"
-            RAM: "0.01"
-            storage: "0.10"
-            zoneNetworkEgress: "0.01"
-            regionNetworkEgress: "0.01"
-            internetNetworkEgress: "0.05"
-        
-        # Node labeling for Minikube
-        nodeLabels:
-          topology.kubernetes.io/region: "local"
-        
-        # Resource requests/limits
+        # Resource configuration
         resources:
           requests:
             memory: "512Mi"
@@ -62,10 +66,21 @@ spec:
             memory: "1Gi"
             cpu: "500m"
         
-        # Additional configurations
-        serviceMonitor:
-          enabled: false  # Disable if not using Prometheus Operator
-        podSecurityPolicy:
+        # Metrics configuration
+        metricsConfigs:
+          enabled: true
+          config:
+            cpu:
+              enabled: true
+              queryWindow: "3m"
+            ram:
+              enabled: true
+              queryWindow: "3m"
+        
+        # Disable features not needed in Minikube
+        cloudCost:
+          enabled: false
+        customCost:
           enabled: false
         
   syncPolicy:
