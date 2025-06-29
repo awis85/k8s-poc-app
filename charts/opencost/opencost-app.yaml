@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://opencost.github.io/opencost-helm-chart # Official Helm chart repository for OpenCost
-    # targetRevision: 1.107.0 # Use the latest stable version
+    targetRevision: 2.1.6 # Use the latest stable version
     chart: opencost
     helm:
       releaseName: opencost
