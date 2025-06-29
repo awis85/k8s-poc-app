@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://opencost.github.io/opencost-helm-chart
-    targetRevision: 1.115.0
+    targetRevision: 2.1.6 # Use the latest stable version
     chart: opencost
     helm:
       releaseName: opencost
@@ -21,12 +21,12 @@ spec:
         prometheus:
           external:
             enabled: true
-            url: "http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
+            url: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
         kubecostProductConfigs:
           enabled: false
         extraEnv:
           - name: PROMETHEUS_SERVER_ENDPOINT
-            value: "http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
+            value: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
   syncPolicy:
     automated:
       prune: true

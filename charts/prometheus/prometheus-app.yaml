@@ -1,37 +1,104 @@
-# prometheus-application.yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Application
+# # prometheus-application.yaml
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: prometheus-stack
+#   namespace: argocd
+# spec:
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: monitoring
+#   project: default
+#   source:
+#     repoURL: https://prometheus-community.github.io/helm-charts
+#     targetRevision: 56.6.1 # Recommended stable version (75.x seems problematic)
+#     chart: kube-prometheus-stack
+#     helm:
+#       releaseName: prometheus
+#       values: |
+#         grafana:
+#           enabled: true
+#         alertmanager:
+#           enabled: false # Disable initially to reduce CRD load
+#         prometheus:
+#           enabled: true
+#           prometheusSpec:
+#             serviceMonitorSelectorNilUsesHelmValues: false
+#             ruleSelectorNilUsesHelmValues: false
+#             podMonitorSelectorNilUsesHelmValues: false
+#             probeSelectorNilUsesHelmValues: false
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
+#       - ServerSideApply=true # Critical for large CRDs
+#       - ApplyOutOfSyncOnly=true # Prevents full-replace cycles
+apiVersion: v1
+kind: Namespace
 metadata:
-  name: prometheus-stack
-  namespace: argocd
+  name: prometheus-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-server
+  namespace: prometheus-system
 spec:
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: monitoring
-  project: default
-  source:
-    repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: 56.6.1 # Recommended stable version (75.x seems problematic)
-    chart: kube-prometheus-stack
-    helm:
-      releaseName: prometheus
-      values: |
-        grafana:
-          enabled: true
-        alertmanager:
-          enabled: false # Disable initially to reduce CRD load
-        prometheus:
-          enabled: true
-          prometheusSpec:
-            serviceMonitorSelectorNilUsesHelmValues: false
-            ruleSelectorNilUsesHelmValues: false
-            podMonitorSelectorNilUsesHelmValues: false
-            probeSelectorNilUsesHelmValues: false
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true # Critical for large CRDs
-      - ApplyOutOfSyncOnly=true # Prevents full-replace cycles
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+      component: server
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        component: server
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.47.0
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--web.listen-address=:80"
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/prometheus
+      volumes:
+      - name: config-volume
+        configMap:
+          name: prometheus-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: prometheus-system
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+    scrape_configs:
+    - job_name: 'kubernetes-nodes'
+      kubernetes_sd_configs:
+      - role: node
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-server
+  namespace: prometheus-system
+spec:
+  selector:
+    app: prometheus
+    component: server
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  type: ClusterIP
