@@ -10,7 +10,7 @@ spec:
     namespace: opencost  # Create this namespace first
   project: default
   source:
-    repoURL: https://github.com/opencost/opencost-helm-chart
+    repoURL: https://opencost.github.io/opencost-helm-chart # Official Helm chart repository for OpenCost
     targetRevision: 1.107.0 # Use the latest stable version
     chart: opencost
     helm:
