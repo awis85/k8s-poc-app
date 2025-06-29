@@ -7,11 +7,11 @@ metadata:
 spec:
   destination:
     server: https://kubernetes.default.svc
-    namespace: monitoring  # Create this namespace first
+    namespace: monitoring
   project: default
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: 75.6.1
+    targetRevision: 56.6.1 # Recommended stable version (75.x seems problematic)
     chart: kube-prometheus-stack
     helm:
       releaseName: prometheus
@@ -19,8 +19,9 @@ spec:
         grafana:
           enabled: true
         alertmanager:
-          enabled: true
+          enabled: false # Disable initially to reduce CRD load
         prometheus:
+          enabled: true
           prometheusSpec:
             serviceMonitorSelectorNilUsesHelmValues: false
             ruleSelectorNilUsesHelmValues: false
@@ -31,4 +32,6 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true # Argo CD will create the 'monitoring' namespace if it doesn't exist
+      - CreateNamespace=true
+      - ServerSideApply=true # Critical for large CRDs
+      - ApplyOutOfSyncOnly=true # Prevents full-replace cycles

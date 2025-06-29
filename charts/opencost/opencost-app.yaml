@@ -21,7 +21,9 @@ spec:
         prometheus:
           external:
             enabled: true
-            url: http://prometheus-prometheus-oper-prometheus.monitoring.svc.cluster.local:9090
+            url: "http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
+        kubecostProductConfigs:
+          enabled: false    
     destination:
       server: https://kubernetes.default.svc
       namespace: opencost # The namespace where OpenCost will be installed
