@@ -1,4 +1,3 @@
-# opencost-app.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -20,68 +19,38 @@ spec:
           type: ClusterIP
           port: 9003
         
-        # Prometheus configuration
+        # Explicit Load Balancer Pricing
+        pricingConfigs:
+          enabled: true
+          config:
+            loadBalancer:
+              cost: "0.00"  # Explicitly set to $0 for Minikube
+            CPU: "0.024"
+            RAM: "0.01"
+            storage: "0.10"
+        
+        # Minikube-specific settings
+        nodeLabels:
+          topology.kubernetes.io/region: "local"
+          kubernetes.io/hostname: "minikube"
+        
         prometheus:
           external:
             enabled: true
             url: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
         
-        # Pricing configuration to resolve warnings
-        pricingConfigs:
-          enabled: true
-          config:
-            CPU: "0.024"        # Cost per CPU core per hour
-            GPU: "0.00"         # Cost per GPU per hour
-            RAM: "0.01"         # Cost per GB of RAM per hour
-            storage: "0.10"     # Cost per GB of storage per hour
-            zoneNetworkEgress: "0.01"  # Cost per GB within zone
-            regionNetworkEgress: "0.01" # Cost per GB within region
-            internetNetworkEgress: "0.05" # Cost per GB internet egress
-            loadBalancerCost: "0.00"    # Explicitly set LB cost to $0
-        
-        # Node labels for Minikube
-        nodeLabels:
-          topology.kubernetes.io/region: "local"
-          kubernetes.io/hostname: "minikube"
-        
-        # Disable Kubecost components
         kubecostProductConfigs:
           enabled: false
         
-        # Environment variables
         extraEnv:
           - name: PROMETHEUS_SERVER_ENDPOINT
             value: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
           - name: AWS_REGION
-            value: "local"  # Fallback region for Minikube
-          - name: EXPORT_CSV_FILE
-            value: ""       # Explicitly disable CSV export
+            value: "local"
         
-        # Resource configuration
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "200m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        
-        # Metrics configuration
-        metricsConfigs:
-          enabled: true
-          config:
-            cpu:
-              enabled: true
-              queryWindow: "3m"
-            ram:
-              enabled: true
-              queryWindow: "3m"
-        
-        # Disable features not needed in Minikube
-        cloudCost:
-          enabled: false
-        customCost:
-          enabled: false
+        # Disable LB monitoring for Minikube
+        kubernetes:
+          enableLoadBalancerMetrics: false
         
   syncPolicy:
     automated:
@@ -90,4 +59,3 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - ApplyOutOfSyncOnly=true
