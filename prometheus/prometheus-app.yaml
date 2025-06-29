@@ -1,0 +1,26 @@
+# prometheus-application.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-stack
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring  # Create this namespace first
+  project: default
+  source:
+    repoURL: https://github.com/prometheus-community/helm-charts
+    targetRevision: main
+    chart: kube-prometheus-stack
+    helm:
+      releaseName: prometheus
+      values: |
+        grafana:
+          enabled: true
+        alertmanager:
+          enabled: true
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

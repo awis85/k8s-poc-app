@@ -1,0 +1,28 @@
+# opencost-application.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opencost
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: opencost  # Create this namespace first
+  project: default
+  source:
+    repoURL: https://github.com/opencost/opencost-helm-chart
+    targetRevision: main
+    chart: opencost
+    helm:
+      releaseName: opencost
+      values: |
+        service:
+          type: ClusterIP
+        prometheus:
+          external:
+            enabled: true
+            url: "http://prometheus-operated.monitoring:9090"  # Points to Prometheus
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
