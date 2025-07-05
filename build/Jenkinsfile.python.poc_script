@@ -29,7 +29,7 @@ pipeline {
                     // If the agent *is* a Python agent, you can run python3 directly.
                     // For simplicity, let's assume agent any has Python.
                     sh "docker run --rm -v \$(pwd):/app -w /app python:3.9-slim-buster python3 $SCRIPT_PATH/poc_script.py"
-                    #sh "python3 $SCRIPT_PATH/poc_script.py"
+                    //sh "python3 $SCRIPT_PATH/poc_script.py"
 
                     echo 'Verifying output file content...'
                     sh "cat $OUTPUT_LOG_FILE"
