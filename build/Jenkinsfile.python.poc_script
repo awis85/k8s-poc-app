@@ -3,12 +3,13 @@
 pipeline {
     // Agent specifies where the pipeline will run.
     // We use a Docker agent with a Python image.
-    agent {
-        docker {
-            image 'python:3.9-slim-buster' // A lightweight Python 3.9 image
-            args '-u root' // Run as root inside container for file permissions if needed (adjust as per security policy)
-        }
-    }
+    agent any
+    // agent {
+    //     docker {
+    //         image 'python:3.9-slim-buster' // A lightweight Python 3.9 image
+    //         args '-u root' // Run as root inside container for file permissions if needed (adjust as per security policy)
+    //     }
+    // }
     // tools {
     //     docker 'docker-latest' // This name must match the name you configured in Global Tool Configuration
     // }
@@ -23,15 +24,19 @@ pipeline {
             steps {
                 script {
                     // Print a message to Jenkins logs
+                    sh "docker --version" // Verify Docker is available
+                    echo "Using Docker path: $DOCKER_PATH"
+                    
                     echo 'Starting Python POC script execution...'
 
                     // Ensure the script is executable (optional, but good practice)
                     sh "chmod +x $SCRIPT_PATH/poc_script.py"
+                    sh "docker run --rm python:3.9-slim-buster python3 $SCRIPT_PATH/poc_script.py"
 
                     // Execute the Python script.
                     // The output of the script (anything printed to stdout)
                     // will automatically appear in the Jenkins job logs.
-                    sh "python3 $SCRIPT_PATH/poc_script.py"
+                    // sh "python3 $SCRIPT_PATH/poc_script.py"
 
                     // After the script runs, you can verify the output file
                     echo 'Verifying output file content...'
