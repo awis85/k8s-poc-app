@@ -19,7 +19,7 @@ pipeline {
                 script {
                     sh "docker --version" // This should now work
                     echo "Docker CLI is available on this agent via Jenkins Tools."
-                    
+                    echo "Using Docker CLI from: ${DOCKER_PATH}"
                     echo 'Starting Python POC script execution...'
 
                     sh "chmod +x $SCRIPT_PATH/poc_script.py"
