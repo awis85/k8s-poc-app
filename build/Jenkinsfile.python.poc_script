@@ -9,6 +9,9 @@ pipeline {
             args '-u root' // Run as root inside container for file permissions if needed (adjust as per security policy)
         }
     }
+    tools {
+        docker 'docker-latest' // This name must match the name you configured in Global Tool Configuration
+    }
     environment {
         // Define the path to your Python script within the Git repository
         SCRIPT_PATH = 'src/python'
