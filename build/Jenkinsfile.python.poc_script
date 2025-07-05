@@ -11,7 +11,7 @@ pipeline {
     }
     environment {
         // Define the path to your Python script within the Git repository
-        SCRIPT_PATH = 'src/python/poc_script.py'
+        SCRIPT_PATH = 'src/python'
         OUTPUT_LOG_FILE = 'poc_output.log' // Also define the output log file name
     }
     stages {
@@ -22,16 +22,16 @@ pipeline {
                     echo 'Starting Python POC script execution...'
 
                     // Ensure the script is executable (optional, but good practice)
-                    sh 'chmod +x poc_script.py'
+                    sh "chmod +x $SCRIPT_PATH/poc_script.py"
 
                     // Execute the Python script.
                     // The output of the script (anything printed to stdout)
                     // will automatically appear in the Jenkins job logs.
-                    sh 'python3 poc_script.py'
+                    sh "python3 $SCRIPT_PATH/poc_script.py"
 
                     // After the script runs, you can verify the output file
                     echo 'Verifying output file content...'
-                    sh 'cat poc_output.log' // This will print the file content to Jenkins logs
+                    sh "cat $OUTPUT_LOG_FILE" // This will print the file content to Jenkins logs
 
                     echo 'Python POC script execution finished.'
                 }
