@@ -43,7 +43,7 @@ pipeline {
         always {
             // Clean up workspace after build (optional, but good for disk space)
             echo 'Cleaning up workspace...'
-            deleteDir()
+            // deleteDir()
         }
         failure {
             echo 'Pipeline failed. Check logs for errors.'
