@@ -9,11 +9,12 @@ pipeline {
             args '-u root' // Run as root inside container for file permissions if needed (adjust as per security policy)
         }
     }
-    tools {
-        docker 'docker-latest' // This name must match the name you configured in Global Tool Configuration
-    }
+    // tools {
+    //     docker 'docker-latest' // This name must match the name you configured in Global Tool Configuration
+    // }
     environment {
         // Define the path to your Python script within the Git repository
+        DOCKER_PATH = tool(name: 'docker-latest', type: 'org.jenkinsci.plugins.docker.commons.tools.DockerTool')
         SCRIPT_PATH = 'src/python'
         OUTPUT_LOG_FILE = 'poc_output.log' // Also define the output log file name
     }
