@@ -1,0 +1,55 @@
+// Jenkinsfile
+
+pipeline {
+    // Agent specifies where the pipeline will run.
+    // We use a Docker agent with a Python image.
+    agent {
+        docker {
+            image 'python:3.9-slim-buster' // A lightweight Python 3.9 image
+            args '-u root' // Run as root inside container for file permissions if needed (adjust as per security policy)
+        }
+    }
+    environment {
+        // Define the path to your Python script within the Git repository
+        SCRIPT_PATH = 'src/python/poc_script.py'
+        OUTPUT_LOG_FILE = 'poc_output.log' // Also define the output log file name
+    }
+    stages {
+        stage('Run Python POC Script') {
+            steps {
+                script {
+                    // Print a message to Jenkins logs
+                    echo 'Starting Python POC script execution...'
+
+                    // Ensure the script is executable (optional, but good practice)
+                    sh 'chmod +x poc_script.py'
+
+                    // Execute the Python script.
+                    // The output of the script (anything printed to stdout)
+                    // will automatically appear in the Jenkins job logs.
+                    sh 'python3 poc_script.py'
+
+                    // After the script runs, you can verify the output file
+                    echo 'Verifying output file content...'
+                    sh 'cat poc_output.log' // This will print the file content to Jenkins logs
+
+                    echo 'Python POC script execution finished.'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Clean up workspace after build (optional, but good for disk space)
+            echo 'Cleaning up workspace...'
+            deleteDir()
+        }
+        failure {
+            echo 'Pipeline failed. Check logs for errors.'
+        }
+        success {
+            echo 'Pipeline completed successfully.'
+        }
+    }
+}

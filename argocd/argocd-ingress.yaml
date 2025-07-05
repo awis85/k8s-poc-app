@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server-ingress
+  namespace: argocd # Important: Must be in the same namespace as argocd-server service
+  annotations:
+    # Optional: Tells Nginx Ingress to proxy to HTTPS backend
+    # Useful if ArgoCD server only listens on HTTPS internally.
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    # Optional: You may need these for specific Argo CD redirects or websocket support
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/proxy-body-size: "0" # Allows large requests
+    # nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
+    # nginx.ingress.kubernetes.io/ssl-passthrough: "true" # Use if you want Argo CD to handle TLS directly
+spec:
+  # TLS configuration for the Ingress
+  tls:
+  - hosts:
+    - argocd.minikube.local # Your custom hostname
+    secretName: argocd-tls-secret # Name of the TLS secret created in Step 2
+  # Rules for routing HTTP/HTTPS traffic
+  rules:
+  - host: argocd.minikube.local # Your custom hostname
+    http:
+      paths:
+      - path: /
+        pathType: Prefix # Or Exact
+        backend:
+          service:
+            name: argocd-server # The name of the Argo CD server service
+            port:
+              number: 443 # The port Argo CD server listens on (HTTPS)
