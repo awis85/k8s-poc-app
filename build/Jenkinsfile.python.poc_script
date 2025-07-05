@@ -1,58 +1,52 @@
-// Jenkinsfile
+// Jenkinsfile (using agent any and Jenkins Tools for Docker installation)
 
 pipeline {
-    // Agent specifies where the pipeline will run.
-    // We use a Docker agent with a Python image.
-    agent any
-    // agent {
-    //     docker {
-    //         image 'python:3.9-slim-buster' // A lightweight Python 3.9 image
-    //         args '-u root' // Run as root inside container for file permissions if needed (adjust as per security policy)
-    //     }
-    // }
-    // tools {
-    //     docker 'docker-latest' // This name must match the name you configured in Global Tool Configuration
-    // }
+    agent any // This means Jenkins will pick any available agent
+    tools {
+        // This will install/make available the 'docker' command on the agent
+        // picked by 'agent any'. The name 'docker-latest' must match Global Tool Config.
+        docker 'docker-latest'
+    }
     environment {
-        // Define the path to your Python script within the Git repository
-        DOCKER_PATH = tool(name: 'docker-latest', type: 'org.jenkinsci.plugins.docker.commons.tools.DockerTool')
         SCRIPT_PATH = 'src/python'
-        OUTPUT_LOG_FILE = 'poc_output.log' // Also define the output log file name
+        OUTPUT_LOG_FILE = 'poc_output.log'
+        // DOCKER_PATH is not strictly needed as 'tools' adds it to PATH
     }
     stages {
         stage('Run Python POC Script') {
             steps {
                 script {
-                    // Print a message to Jenkins logs
-                    sh "docker --version" // Verify Docker is available
-                    echo "Using Docker path: $DOCKER_PATH"
+                    sh "docker --version" // This should now work
+                    echo "Docker CLI is available on this agent via Jenkins Tools."
                     
                     echo 'Starting Python POC script execution...'
 
-                    // Ensure the script is executable (optional, but good practice)
                     sh "chmod +x $SCRIPT_PATH/poc_script.py"
-                    sh "docker run --rm python:3.9-slim-buster python3 $SCRIPT_PATH/poc_script.py"
+                    
+                    // If the 'agent any' is NOT a python:3.9-slim-buster,
+                    // you might still need to docker run if Python isn't available.
+                    // If the agent *is* a Python agent, you can run python3 directly.
+                    // For simplicity, let's assume agent any has Python.
+                    sh "python3 $SCRIPT_PATH/poc_script.py"
 
-                    // Execute the Python script.
-                    // The output of the script (anything printed to stdout)
-                    // will automatically appear in the Jenkins job logs.
-                    // sh "python3 $SCRIPT_PATH/poc_script.py"
-
-                    // After the script runs, you can verify the output file
                     echo 'Verifying output file content...'
-                    sh "cat $OUTPUT_LOG_FILE" // This will print the file content to Jenkins logs
+                    sh "cat $OUTPUT_LOG_FILE"
 
                     echo 'Python POC script execution finished.'
                 }
             }
         }
     }
-
     post {
         always {
-            // Clean up workspace after build (optional, but good for disk space)
-            echo 'Cleaning up workspace...'
-            // deleteDir()
+            script {
+                if (currentBuild.result == 'SUCCESS' || currentBuild.result == 'FAILURE') {
+                    echo 'Cleaning up workspace...'
+                    deleteDir()
+                } else {
+                    echo "Skipping workspace cleanup for build status: ${currentBuild.result}"
+                }
+            }
         }
         failure {
             echo 'Pipeline failed. Check logs for errors.'
